@@ -135,9 +135,7 @@ class Slider(
         n_steps = int((self.maximum - self.minimum) / self.step)
         step = random.randint(0, n_steps)
         value = self.minimum + step * self.step
-        # Round to number of decimals in step so that UI doesn't display long decimals
-        n_decimals = max(str(self.step)[::-1].find("."), 0)
-        if n_decimals:
+        if n_decimals := max(str(self.step)[::-1].find("."), 0):
             value = round(value, n_decimals)
         return value
 

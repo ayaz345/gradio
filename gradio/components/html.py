@@ -71,11 +71,10 @@ class HTML(Changeable, IOComponent, StringSerializable):
         show_label: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
-        return updated_config

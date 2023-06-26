@@ -123,10 +123,7 @@ class ColorPicker(
         Returns:
             text
         """
-        if x is None:
-            return None
-        else:
-            return str(x)
+        return None if x is None else str(x)
 
     def postprocess(self, y: str | None) -> str | None:
         """
@@ -136,7 +133,4 @@ class ColorPicker(
         Returns:
             text
         """
-        if y is None:
-            return None
-        else:
-            return str(y)
+        return None if y is None else str(y)

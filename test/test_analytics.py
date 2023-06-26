@@ -58,7 +58,7 @@ class TestIPAddress:
     def test_get_ip(self):
         Context.ip_address = None
         ip = analytics.get_local_ip_address()
-        if ip == "No internet connection" or ip == "Analytics disabled":
+        if ip in ["No internet connection", "Analytics disabled"]:
             return
         ipaddress.ip_address(ip)
 

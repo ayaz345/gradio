@@ -147,21 +147,19 @@ class Examples:
                     f"Could not find examples directory: {examples}"
                 )
             working_directory = examples
-            if not (Path(examples) / LOG_FILE).exists():
-                if len(inputs) == 1:
-                    examples = [[e] for e in os.listdir(examples)]
-                else:
-                    raise FileNotFoundError(
-                        "Could not find log file (required for multiple inputs): "
-                        + LOG_FILE
-                    )
-            else:
+            if (Path(examples) / LOG_FILE).exists():
                 with open(Path(examples) / LOG_FILE) as logs:
                     examples = list(csv.reader(logs))
                     examples = [
                         examples[i][: len(inputs)] for i in range(1, len(examples))
                     ]  # remove header and unnecessary columns
 
+            elif len(inputs) == 1:
+                examples = [[e] for e in os.listdir(examples)]
+            else:
+                raise FileNotFoundError(
+                    f"Could not find log file (required for multiple inputs): {LOG_FILE}"
+                )
         else:
             raise ValueError(
                 "The parameter `examples` must either be a string directory or a list"
@@ -191,13 +189,13 @@ class Examples:
         self.inputs = inputs
         self.inputs_with_examples = inputs_with_examples
         self.outputs = outputs
-        self.fn = fn
         self.cache_examples = cache_examples
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.batch = batch
 
+        self.fn = fn
         with utils.set_directory(working_directory):
             self.processed_examples = [
                 [
@@ -423,26 +421,25 @@ class Progress(Iterable):
         """
         Updates progress tracker with next item in iterable.
         """
-        if self._callback:
-            current_iterable = self.iterables[-1]
-            while (
-                not hasattr(current_iterable.iterable, "__next__")
-                and len(self.iterables) > 0
-            ):
-                current_iterable = self.iterables.pop()
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables,
-            )
-            assert current_iterable.index is not None, "Index not set."
-            current_iterable.index += 1
-            try:
-                return next(current_iterable.iterable)  # type: ignore
-            except StopIteration:
-                self.iterables.pop()
-                raise
-        else:
+        if not self._callback:
             return self
+        current_iterable = self.iterables[-1]
+        while (
+            not hasattr(current_iterable.iterable, "__next__")
+            and len(self.iterables) > 0
+        ):
+            current_iterable = self.iterables.pop()
+        self._callback(
+            event_id=self._event_id,
+            iterables=self.iterables,
+        )
+        assert current_iterable.index is not None, "Index not set."
+        current_iterable.index += 1
+        try:
+            return next(current_iterable.iterable)  # type: ignore
+        except StopIteration:
+            self.iterables.pop()
+            raise
 
     def __call__(
         self,
@@ -523,17 +520,16 @@ class Progress(Iterable):
         """
         Removes iterable with given _tqdm.
         """
-        if self._callback:
-            for i in range(len(self.iterables)):
-                if id(self.iterables[i]._tqdm) == id(_tqdm):
-                    self.iterables.pop(i)
-                    break
-            self._callback(
-                event_id=self._event_id,
-                iterables=self.iterables,
-            )
-        else:
+        if not self._callback:
             return
+        for i in range(len(self.iterables)):
+            if id(self.iterables[i]._tqdm) == id(_tqdm):
+                self.iterables.pop(i)
+                break
+        self._callback(
+            event_id=self._event_id,
+            iterables=self.iterables,
+        )
 
 
 def create_tracker(root_blocks, event_id, fn, track_tqdm):
@@ -561,10 +557,7 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
-        if self._progress is not None:
-            return self._progress
-        else:
-            return self.__iter__orig__()
+        return self._progress if self._progress is not None else self.__iter__orig__()
 
     def update_tqdm(self, n=1):
         if self._progress is not None:

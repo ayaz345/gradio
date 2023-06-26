@@ -269,10 +269,8 @@ class TestLoadInterface:
                 warnings.warn("Request for speech recognition model failed!")
                 if (
                     "Could not complete request to HuggingFace API"
-                    in resp.json()["error"]
+                    not in resp.json()["error"]
                 ):
-                    pass
-                else:
                     raise AssertionError()
             else:
                 assert resp.json()["data"] is not None

@@ -150,10 +150,7 @@ class Radio(
         if self.type == "value":
             return x
         elif self.type == "index":
-            if x is None:
-                return None
-            else:
-                return self.choices.index(x)
+            return None if x is None else self.choices.index(x)
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."

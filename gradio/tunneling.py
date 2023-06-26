@@ -35,23 +35,24 @@ class Tunnel:
 
     @staticmethod
     def download_binary():
-        if not Path(BINARY_PATH).exists():
-            binary_url = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_NAME}{EXTENSION}"
-            resp = requests.get(binary_url)
+        if Path(BINARY_PATH).exists():
+            return
+        binary_url = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_NAME}{EXTENSION}"
+        resp = requests.get(binary_url)
 
-            if resp.status_code == 403:
-                raise OSError(
-                    f"Cannot set up a share link as this platform is incompatible. Please "
-                    f"create a GitHub issue with information about your platform: {platform.uname()}"
-                )
+        if resp.status_code == 403:
+            raise OSError(
+                f"Cannot set up a share link as this platform is incompatible. Please "
+                f"create a GitHub issue with information about your platform: {platform.uname()}"
+            )
 
-            resp.raise_for_status()
+        resp.raise_for_status()
 
-            # Save file data to local copy
-            with open(BINARY_PATH, "wb") as file:
-                file.write(resp.content)
-            st = os.stat(BINARY_PATH)
-            os.chmod(BINARY_PATH, st.st_mode | stat.S_IEXEC)
+        # Save file data to local copy
+        with open(BINARY_PATH, "wb") as file:
+            file.write(resp.content)
+        st = os.stat(BINARY_PATH)
+        os.chmod(BINARY_PATH, st.st_mode | stat.S_IEXEC)
 
     def start_tunnel(self) -> str:
         self.download_binary()
@@ -88,7 +89,7 @@ class Tunnel:
         )
         atexit.register(self.kill)
         url = ""
-        while url == "":
+        while not url:
             if self.proc.stdout is None:
                 continue
             line = self.proc.stdout.readline()
@@ -98,5 +99,5 @@ class Tunnel:
                 if result is None:
                     raise ValueError("Could not create share URL")
                 else:
-                    url = result.group(1)
+                    url = result[1]
         return url

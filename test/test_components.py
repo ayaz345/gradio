@@ -109,7 +109,7 @@ class TestTextbox:
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         assert iface("Hello") == "olleH"
         iface = gr.Interface(
-            lambda sentence: max([len(word) for word in sentence.split()]),
+            lambda sentence: max(len(word) for word in sentence.split()),
             gr.Textbox(),
             "number",
             interpretation="default",

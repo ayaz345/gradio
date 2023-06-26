@@ -308,7 +308,7 @@ class Image(
         resized_and_cropped_image = np.array(x)
         try:
             from skimage.segmentation import slic
-        except (ImportError, ModuleNotFoundError) as err:
+        except ImportError as err:
             raise ValueError(
                 "Error: running this interpretation for images requires scikit-image, please install it first."
             ) from err

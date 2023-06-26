@@ -95,10 +95,7 @@ class Textbox(
             raise ValueError('`type` must be one of "text", "password", or "email".')
 
         self.lines = lines
-        if type == "text":
-            self.max_lines = max(lines, max_lines)
-        else:
-            self.max_lines = 1
+        self.max_lines = max(lines, max_lines) if type == "text" else 1
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
         self.select: EventListenerMethod
@@ -242,8 +239,7 @@ class Textbox(
         """
         result = []
         for token, score in zip(tokens, scores):
-            result.append((token, score))
-            result.append((self.interpretation_separator, 0))
+            result.extend(((token, score), (self.interpretation_separator, 0)))
         return result
 
     def style(

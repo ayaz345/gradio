@@ -196,30 +196,26 @@ class File(
                 file.name = path
                 file.orig_name = file_name  # type: ignore
                 return file
-            elif (
-                self.type == "binary" or self.type == "bytes"
-            ):  # "bytes" is included for backwards compatibility
+            elif self.type in ["binary", "bytes"]:  # "bytes" is included for backwards compatibility
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
                 return client_utils.decode_base64_to_binary(data)[0]
             else:
                 raise ValueError(
-                    "Unknown type: "
-                    + str(self.type)
-                    + ". Please choose from: 'file', 'bytes'."
+                    f"Unknown type: {str(self.type)}. Please choose from: 'file', 'bytes'."
                 )
 
         if self.file_count == "single":
-            if isinstance(x, list):
-                return process_single_file(x[0])
-            else:
-                return process_single_file(x)
+            return (
+                process_single_file(x[0])
+                if isinstance(x, list)
+                else process_single_file(x)
+            )
+        if isinstance(x, list):
+            return [process_single_file(f) for f in x]
         else:
-            if isinstance(x, list):
-                return [process_single_file(f) for f in x]
-            else:
-                return process_single_file(x)
+            return process_single_file(x)
 
     def postprocess(
         self, y: str | list[str] | None
@@ -244,14 +240,13 @@ class File(
                 for file in y
             ]
         else:
-            d = {
+            return {
                 "orig_name": Path(y).name,
                 "name": self.make_temp_copy_if_needed(y),
                 "size": Path(y).stat().st_size,
                 "data": None,
                 "is_file": True,
             }
-            return d
 
     def as_example(self, input_data: str | list | None) -> str:
         if input_data is None:

@@ -116,7 +116,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         min_width: int | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "color_map": color_map,
             "show_legend": show_legend,
             "label": label,
@@ -128,7 +128,6 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             "value": value,
             "__type__": "update",
         }
-        return updated_config
 
     def postprocess(
         self, y: list[tuple[str, str | float | None]] | dict | None
@@ -157,35 +156,35 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
                 index = 0
                 entities = sorted(entities, key=lambda x: x["start"])
                 for entity in entities:
-                    list_format.append((text[index : entity["start"]], None))
-                    list_format.append(
-                        (text[entity["start"] : entity["end"]], entity["entity"])
+                    list_format.extend(
+                        (
+                            (text[index : entity["start"]], None),
+                            (
+                                text[entity["start"] : entity["end"]],
+                                entity["entity"],
+                            ),
+                        )
                     )
                     index = entity["end"]
                 list_format.append((text[index:], None))
                 y = list_format
-        if self.combine_adjacent:
-            output = []
-            running_text, running_category = None, None
-            for text, category in y:
-                if running_text is None:
-                    running_text = text
-                    running_category = category
-                elif category == running_category:
-                    running_text += self.adjacent_separator + text
-                elif not text:
-                    # Skip fully empty item, these get added in processing
-                    # of dictionaries.
-                    pass
-                else:
-                    output.append((running_text, running_category))
-                    running_text = text
-                    running_category = category
-            if running_text is not None:
-                output.append((running_text, running_category))
-            return output
-        else:
+        if not self.combine_adjacent:
             return y
+        output = []
+        running_text, running_category = None, None
+        for text, category in y:
+            if running_text is None:
+                running_text = text
+                running_category = category
+            elif category == running_category:
+                running_text += self.adjacent_separator + text
+            elif text:
+                output.append((running_text, running_category))
+                running_text = text
+                running_category = category
+        if running_text is not None:
+            output.append((running_text, running_category))
+        return output
 
     def style(
         self,

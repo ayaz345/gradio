@@ -13,7 +13,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 def max_word_len(text: str) -> int:
-    return max([len(word) for word in text.split(" ")])
+    return max(len(word) for word in text.split(" "))
 
 
 class TestDefault:

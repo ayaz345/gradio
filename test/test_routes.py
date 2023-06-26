@@ -34,8 +34,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 def test_client():
     io = Interface(lambda x: x + x, "text", "text")
     app, _, _ = io.launch(prevent_thread_lock=True)
-    test_client = TestClient(app)
-    yield test_client
+    yield TestClient(app)
     io.close()
     close_all()
 

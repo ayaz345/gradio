@@ -145,8 +145,8 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "events": [str(x["trigger"]) for x in blocks.dependencies],
     }
 
-    data.update(additional_data)
-    data.update({"ip_address": get_local_ip_address()})
+    data |= additional_data
+    data["ip_address"] = get_local_ip_address()
 
     threading.Thread(
         target=_do_analytics_request,

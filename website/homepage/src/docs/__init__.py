@@ -85,7 +85,7 @@ def add_supported_events():
                 continue
             for prop in dir(listener):
                 if prop not in event_listener_props:
-                    component["events-list"].append(prop + "()")
+                    component["events-list"].append(f"{prop}()")
         if component["events-list"]:
             component["events"] = ", ".join(component["events-list"])
 
@@ -217,7 +217,7 @@ def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
 def build_pip_template(version, jinja_env):
     build_js_client()
     template = jinja_env.get_template("docs/template.html")
-    output = template.render(
+    return template.render(
         docs=docs,
         find_cls=find_cls,
         version="pip",
@@ -225,4 +225,3 @@ def build_pip_template(version, jinja_env):
         canonical_suffix="",
         ordered_events=ordered_events,
     )
-    return output

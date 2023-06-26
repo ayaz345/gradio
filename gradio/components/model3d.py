@@ -102,7 +102,7 @@ class Model3D(
         min_width: int | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "container": container,
@@ -112,7 +112,6 @@ class Model3D(
             "value": value,
             "__type__": "update",
         }
-        return updated_config
 
     def preprocess(self, x: dict[str, str] | None) -> str | None:
         """
@@ -128,12 +127,11 @@ class Model3D(
             x["data"],
             x.get("is_file", False),
         )
-        if is_file:
-            temp_file_path = self.make_temp_copy_if_needed(file_name)
-        else:
-            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
-
-        return temp_file_path
+        return (
+            self.make_temp_copy_if_needed(file_name)
+            if is_file
+            else self.base64_to_temp_file_if_needed(file_data, file_name)
+        )
 
     def postprocess(self, y: str | None) -> dict[str, str] | None:
         """
@@ -144,12 +142,11 @@ class Model3D(
         """
         if y is None:
             return y
-        data = {
+        return {
             "name": self.make_temp_copy_if_needed(y),
             "data": None,
             "is_file": True,
         }
-        return data
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""

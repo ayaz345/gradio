@@ -119,7 +119,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         visible: bool | None = None,
         height: int | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "container": container,
@@ -130,7 +130,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "height": height,
             "__type__": "update",
         }
-        return updated_config
 
     def _preprocess_chat_messages(
         self, chat_message: str | dict | None
