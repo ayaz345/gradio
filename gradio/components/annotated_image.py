@@ -126,7 +126,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         min_width: int | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "show_legend": show_legend,
             "height": height,
             "width": width,
@@ -140,7 +140,6 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             "value": value,
             "__type__": "update",
         }
-        return updated_config
 
     def postprocess(
         self,
@@ -195,10 +194,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
                 mask_array[y1 : y1 + border_width, x1:x2] = 1
                 mask_array[y2 - border_width : y2, x1:x2] = 1
 
-            if label in color_map:
-                rgb_color = hex_to_rgb(color_map[label])
-            else:
-                rgb_color = [255, 0, 0]
+            rgb_color = hex_to_rgb(color_map[label]) if label in color_map else [255, 0, 0]
             colored_mask = np.zeros((base_img.shape[0], base_img.shape[1], 4))
             solid_mask = np.copy(mask_array)
             solid_mask[solid_mask > 0] = 1

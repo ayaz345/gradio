@@ -181,9 +181,7 @@ class Number(
         Returns:
             number representing function output
         """
-        if y is None:
-            return None
-        return self._round_to_precision(y, self.precision)
+        return None if y is None else self._round_to_precision(y, self.precision)
 
     def set_interpret_parameters(
         self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
@@ -204,8 +202,6 @@ class Number(
         x = self._round_to_precision(x, self.precision)
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
-        elif self.interpretation_delta_type == "absolute":
-            delta = self.interpretation_delta
         else:
             delta = self.interpretation_delta
         if self.precision == 0 and math.floor(delta) != delta:
@@ -231,5 +227,5 @@ class Number(
             Each tuple set represents a numeric value near the input and its corresponding interpretation score.
         """
         interpretation = list(zip(neighbors, scores))
-        interpretation.insert(int(len(interpretation) / 2), (x, None))
+        interpretation.insert(len(interpretation) // 2, (x, None))
         return interpretation

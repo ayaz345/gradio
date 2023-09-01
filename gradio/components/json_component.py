@@ -86,7 +86,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         min_width: int | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "container": container,
@@ -96,7 +96,6 @@ class JSON(Changeable, IOComponent, JSONSerializable):
             "value": value,
             "__type__": "update",
         }
-        return updated_config
 
     def postprocess(self, y: dict | list | str | None) -> dict | list | None:
         """
@@ -107,10 +106,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         """
         if y is None:
             return None
-        if isinstance(y, str):
-            return json.loads(y)
-        else:
-            return y
+        return json.loads(y) if isinstance(y, str) else y
 
     def style(self, *, container: bool | None = None, **kwargs):
         """

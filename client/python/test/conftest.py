@@ -172,13 +172,11 @@ def count_generator_demo():
 
 @pytest.fixture
 def file_io_demo():
-    demo = gr.Interface(
+    return gr.Interface(
         lambda x: print("foox"),
         [gr.File(file_count="multiple"), "file"],
         [gr.File(file_count="multiple"), "file"],
     )
-
-    return demo
 
 
 @pytest.fixture
@@ -208,9 +206,7 @@ def all_components():
 
     while classes_to_check:
         subclass = classes_to_check.pop()
-        children = subclass.__subclasses__()
-
-        if children:
+        if children := subclass.__subclasses__():
             classes_to_check.extend(children)
         if (
             "value" in inspect.signature(subclass).parameters

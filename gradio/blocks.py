@@ -213,11 +213,10 @@ class Block:
 
         if isinstance(outputs, set):
             outputs = sorted(outputs, key=lambda x: x._id)
-        else:
-            if outputs is None:
-                outputs = []
-            elif not isinstance(outputs, list):
-                outputs = [outputs]
+        elif outputs is None:
+            outputs = []
+        elif not isinstance(outputs, list):
+            outputs = [outputs]
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
@@ -234,10 +233,11 @@ class Block:
                 "Either batch is True or every is non-zero but not both."
             )
 
-        if every and fn:
-            fn = get_continuous_fn(fn, every)
-        elif every:
-            raise ValueError("Cannot set a value for `every` without a `fn`.")
+        if every:
+            if fn:
+                fn = get_continuous_fn(fn, every)
+            else:
+                raise ValueError("Cannot set a value for `every` without a `fn`.")
 
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
@@ -307,8 +307,7 @@ class Block:
     def get_specific_update(cls, generic_update: dict[str, Any]) -> dict:
         generic_update = generic_update.copy()
         del generic_update["__type__"]
-        specific_update = cls.update(**generic_update)
-        return specific_update
+        return cls.update(**generic_update)
 
 
 class BlockContext(Block):
@@ -604,9 +603,7 @@ def get_api_info(config: dict, serialize: bool = True):
             continue
         if dependency["api_name"]:
             api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
-        elif mode == "interface" or mode == "tabbed_interface":
-            pass  # Skip unnamed endpoints in interface mode
-        else:
+        elif mode not in ["interface", "tabbed_interface"]:
             api_info["unnamed_endpoints"][str(d)] = dependency_info
 
     return api_info
@@ -740,8 +737,8 @@ class Blocks(BlockContext):
         self.root_urls = set()
 
         if self.analytics_enabled:
-            is_custom_theme = not any(
-                self.theme.to_dict() == built_in_theme.to_dict()
+            is_custom_theme = all(
+                self.theme.to_dict() != built_in_theme.to_dict()
                 for built_in_theme in BUILT_IN_THEMES.values()
             )
             data = {
@@ -1323,7 +1320,7 @@ Received outputs:
                 block_fn.fn
             ):
                 raise ValueError("Gradio does not support generators in batch mode.")
-            if not all(x == batch_size for x in batch_sizes):
+            if any(x != batch_size for x in batch_sizes):
                 raise ValueError(
                     f"All inputs to a batch function must have the same length but instead have sizes: {batch_sizes}."
                 )

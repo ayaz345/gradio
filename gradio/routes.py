@@ -124,14 +124,13 @@ class App(FastAPI):
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
-        if auth is not None:
-            if not callable(auth):
-                self.auth = {account[0]: account[1] for account in auth}
-            else:
-                self.auth = auth
-        else:
+        if auth is None:
             self.auth = None
 
+        elif not callable(auth):
+            self.auth = {account[0]: account[1] for account in auth}
+        else:
+            self.auth = auth
         self.blocks = blocks
         if hasattr(self.blocks, "_queue"):
             self.blocks._queue.set_access_token(self.queue_token)
@@ -159,8 +158,7 @@ class App(FastAPI):
         headers = {}
         if Context.hf_token is not None and is_hf_url:
             headers["Authorization"] = f"Bearer {Context.hf_token}"
-        rp_req = client.build_request("GET", url, headers=headers)
-        return rp_req
+        return client.build_request("GET", url, headers=headers)
 
     @staticmethod
     def create_app(
@@ -636,7 +634,7 @@ def safe_join(directory: str, path: str) -> str:
         sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
     ]
 
-    if path == "":
+    if not path:
         raise HTTPException(400)
 
     filename = posixpath.normpath(path)
@@ -662,9 +660,11 @@ def get_types(cls_set: List[Type]):
     for cls in cls_set:
         doc = inspect.getdoc(cls) or ""
         doc_lines = doc.split("\n")
-        for line in doc_lines:
-            if "value (" in line:
-                types.append(line.split("value (")[1].split(")")[0])
+        types.extend(
+            line.split("value (")[1].split(")")[0]
+            for line in doc_lines
+            if "value (" in line
+        )
         docset.append(doc_lines[1].split(":")[-1])
     return docset, types
 
@@ -708,10 +708,10 @@ class Obj:
     def __contains__(self, item) -> bool:
         if item in self.__dict__:
             return True
-        for value in self.__dict__.values():
-            if isinstance(value, Obj) and item in value:
-                return True
-        return False
+        return any(
+            isinstance(value, Obj) and item in value
+            for value in self.__dict__.values()
+        )
 
     def keys(self):
         return self.__dict__.keys()
@@ -763,22 +763,18 @@ class Request:
         self.kwargs: Dict = kwargs
 
     def dict_to_obj(self, d):
-        if isinstance(d, dict):
-            return json.loads(json.dumps(d), object_hook=Obj)
-        else:
-            return d
+        return json.loads(json.dumps(d), object_hook=Obj) if isinstance(d, dict) else d
 
     def __getattr__(self, name):
         if self.request:
             return self.dict_to_obj(getattr(self.request, name))
-        else:
-            try:
-                obj = self.kwargs[name]
-            except KeyError as ke:
-                raise AttributeError(
-                    f"'Request' object has no attribute '{name}'"
-                ) from ke
-            return self.dict_to_obj(obj)
+        try:
+            obj = self.kwargs[name]
+        except KeyError as ke:
+            raise AttributeError(
+                f"'Request' object has no attribute '{name}'"
+            ) from ke
+        return self.dict_to_obj(obj)
 
 
 @document()

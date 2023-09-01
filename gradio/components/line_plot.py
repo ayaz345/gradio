@@ -265,7 +265,7 @@ class LinePlot(Plot):
             chart = LinePlot.create_plot(value, *properties)
             value = {"type": "altair", "plot": chart.to_json(), "chart": "line"}
 
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "container": container,
@@ -276,7 +276,6 @@ class LinePlot(Plot):
             "caption": caption,
             "__type__": "update",
         }
-        return updated_config
 
     @staticmethod
     def create_plot(

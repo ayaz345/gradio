@@ -126,7 +126,4 @@ class Checkbox(
         Returns:
             The first value represents the interpretation score if the input is False, and the second if the input is True.
         """
-        if x:
-            return scores[0], None
-        else:
-            return None, scores[0]
+        return (scores[0], None) if x else (None, scores[0])

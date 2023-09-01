@@ -625,28 +625,28 @@ with gr.Blocks(  # noqa: SIM117
                 if diff:
                     specific_core_diffs[value_name] = (source_class, final_attr_values)
 
-            font_diffs = {}
-
             final_main_fonts = [font for font in final_main_fonts if font[0]]
             final_mono_fonts = [font for font in final_mono_fonts if font[0]]
             font = font[:4]
             font_mono = font_mono[:4]
-            for base_font_set, theme_font_set, font_set_name in [
-                (font, final_main_fonts, "font"),
-                (font_mono, final_mono_fonts, "font_mono"),
-            ]:
-                if len(base_font_set) != len(theme_font_set) or any(
+            font_diffs = {
+                font_set_name: [
+                    f"gr.themes.GoogleFont('{font_name}')"
+                    if is_google_font
+                    else f"'{font_name}'"
+                    for font_name, is_google_font in theme_font_set
+                ]
+                for base_font_set, theme_font_set, font_set_name in [
+                    (font, final_main_fonts, "font"),
+                    (font_mono, final_mono_fonts, "font_mono"),
+                ]
+                if len(base_font_set) != len(theme_font_set)
+                or any(
                     base_font.name != theme_font[0]
                     or isinstance(base_font, gr.themes.GoogleFont) != theme_font[1]
                     for base_font, theme_font in zip(base_font_set, theme_font_set)
-                ):
-                    font_diffs[font_set_name] = [
-                        f"gr.themes.GoogleFont('{font_name}')"
-                        if is_google_font
-                        else f"'{font_name}'"
-                        for font_name, is_google_font in theme_font_set
-                    ]
-
+                )
+            }
             newline = "\n"
 
             core_diffs_code = ""
@@ -662,7 +662,7 @@ with gr.Blocks(  # noqa: SIM117
 
             font_diffs_code = ""
 
-            if len(font_diffs) > 0:
+            if font_diffs:
                 font_diffs_code = "".join(
                     [
                         f"""    {font_set_name}=[{", ".join(fonts)}],\n"""
@@ -681,25 +681,24 @@ with gr.Blocks(  # noqa: SIM117
             newline = "\n"
 
             vars_diff_code = ""
-            if len(var_diffs) > 0:
+            if var_diffs:
                 vars_diff_code = f""".set(
-    {(',' + newline + "    ").join([f"{k}='{v}'" for k, v in var_diffs.items()])}
+    {f',{newline}    '.join([f"{k}='{v}'" for k, v in var_diffs.items()])}
 )"""
 
-            output = f"""
+            return f"""
 import gradio as gr
 
 theme = gr.themes.{base_theme_name}({newline if core_diffs_code or font_diffs_code else ""}{core_diffs_code}{font_diffs_code}){vars_diff_code}
 
 with gr.Blocks(theme=theme) as demo:
     ..."""
-            return output
 
         history = gr.State([])
         current_theme = gr.State(None)
 
         def render_variables(history, base_theme, *args):
-            primary_hue, secondary_hue, neutral_hue = args[0:3]
+            primary_hue, secondary_hue, neutral_hue = args[:3]
             primary_hues = args[3 : 3 + len(palette_range)]
             secondary_hues = args[3 + len(palette_range) : 3 + 2 * len(palette_range)]
             neutral_hues = args[3 + 2 * len(palette_range) : 3 + 3 * len(palette_range)]
@@ -773,10 +772,11 @@ with gr.Blocks(theme=theme) as demo:
             final_radius_size = gr.themes.Size(*radius_sizes)
 
             final_main_fonts = []
-            font_weights = set()
-            for attr, val in zip(flat_variables, remaining_args):
-                if "weight" in attr:
-                    font_weights.add(val)
+            font_weights = {
+                val
+                for attr, val in zip(flat_variables, remaining_args)
+                if "weight" in attr
+            }
             font_weights = sorted(font_weights)
 
             for main_font, is_google in zip(main_fonts, main_is_google):
@@ -912,10 +912,9 @@ with gr.Blocks(theme=theme) as demo:
         def undo(history_var):
             if len(history_var) <= 1:
                 return {history: gr.skip()}
-            else:
-                history_var.pop()
-                old = history_var.pop()
-                return [history_var, old[0]] + list(old[1])
+            history_var.pop()
+            old = history_var.pop()
+            return [history_var, old[0]] + list(old[1])
 
         attach_rerender(
             undo_btn.click(

@@ -115,7 +115,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         | None = None,
         allow_preview: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "container": container,
@@ -131,7 +131,6 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "allow_preview": allow_preview,
             "__type__": "update",
         }
-        return updated_config
 
     def get_config(self):
         return {

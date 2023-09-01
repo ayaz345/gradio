@@ -172,21 +172,19 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
                 return client_utils.decode_base64_to_binary(data)[0]
             else:
                 raise ValueError(
-                    "Unknown type: "
-                    + str(self.type)
-                    + ". Please choose from: 'file', 'bytes'."
+                    f"Unknown type: {str(self.type)}. Please choose from: 'file', 'bytes'."
                 )
 
         if self.file_count == "single":
-            if isinstance(x, list):
-                return process_single_file(x[0])
-            else:
-                return process_single_file(x)
+            return (
+                process_single_file(x[0])
+                if isinstance(x, list)
+                else process_single_file(x)
+            )
+        if isinstance(x, list):
+            return [process_single_file(f) for f in x]
         else:
-            if isinstance(x, list):
-                return [process_single_file(f) for f in x]
-            else:
-                return process_single_file(x)
+            return process_single_file(x)
 
     def style(
         self,

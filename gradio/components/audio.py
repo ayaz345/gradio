@@ -257,7 +257,7 @@ class Audio(
 
             # Handle the tokens
             token = np.copy(data)
-            token[0:start] = 0
+            token[:start] = 0
             token[stop:] = 0
             file = tempfile.NamedTemporaryFile(
                 delete=False, suffix=".wav", dir=self.DEFAULT_TEMP_DIR

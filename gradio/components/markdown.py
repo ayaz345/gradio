@@ -77,12 +77,11 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
-        return updated_config
 
     def as_example(self, input_data: str | None) -> str:
         postprocessed = self.postprocess(input_data)

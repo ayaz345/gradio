@@ -96,7 +96,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         min_width: int | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "container": container,
@@ -106,7 +106,6 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             "value": value,
             "__type__": "update",
         }
-        return updated_config
 
     def postprocess(self, y) -> dict[str, str] | None:
         """
@@ -149,12 +148,9 @@ class AltairPlot:
     @staticmethod
     def create_legend(position, title):
         if position == "none":
-            legend = None
-        else:
-            position = {"orient": position} if position else {}
-            legend = {"title": title, **position}
-
-        return legend
+            return None
+        position = {"orient": position} if position else {}
+        return {"title": title, **position}
 
     @staticmethod
     def create_scale(limit):

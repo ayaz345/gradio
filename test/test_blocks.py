@@ -235,7 +235,7 @@ class TestBlocksMethods:
                 background: black;
             }
         """
-        css = css * 5  # simulate a long css string
+        css *= 5
         block = gr.Blocks(css=css)
 
         assert block.css == css
@@ -628,8 +628,10 @@ class TestComponentsInBlocks:
     def test_get_load_events(self, io_components):
         components = []
         with gr.Blocks() as demo:
-            for component in io_components:
-                components.append(component(value=lambda: None, every=1))
+            components.extend(
+                component(value=lambda: None, every=1)
+                for component in io_components
+            )
         assert [comp.load_event for comp in components] == demo.dependencies
 
 

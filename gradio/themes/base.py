@@ -154,11 +154,7 @@ class ThemeClass:
             repo_name: string of the form <author>/<theme-name>@<semantic-version-expression>.  If a semantic version expression is omitted, the latest version will be fetched.
             hf_token: HuggingFace Token. Only needed to download private themes.
         """
-        if "@" not in repo_name:
-            name, version = repo_name, None
-        else:
-            name, version = repo_name.split("@")
-
+        name, version = repo_name.split("@") if "@" in repo_name else (repo_name, None)
         api = huggingface_hub.HfApi(token=hf_token)
 
         try:

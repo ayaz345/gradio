@@ -265,10 +265,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     def __process_counts(count, default=3) -> tuple[int, str]:
         if count is None:
             return (default, "dynamic")
-        if type(count) == int or type(count) == float:
-            return (int(count), "dynamic")
-        else:
-            return count
+        return (int(count), "dynamic") if type(count) in [int, float] else count
 
     @staticmethod
     def __validate_headers(headers: list[str] | None, col_count: int):
@@ -287,10 +284,10 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         if cls.markdown_parser is None:
             cls.markdown_parser = utils.get_markdown_parser()
 
-        for i in range(len(data)):
-            for j in range(len(data[i])):
+        for datum in data:
+            for j in range(len(datum)):
                 if datatype[j] == "markdown":
-                    data[i][j] = cls.markdown_parser.render(data[i][j])
+                    datum[j] = cls.markdown_parser.render(datum[j])
 
         return data
 
